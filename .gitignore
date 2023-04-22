@@ -383,6 +383,12 @@ FodyWeavers.xsd
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
+.terraform
+*tfplan*
+*.tfplan
+
+.DS_Store
+
 !.vscode/extensions.json
 *.code-workspace
 
