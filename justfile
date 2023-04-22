@@ -9,3 +9,6 @@ terraform-validate: terraform-init
 
 terraform-apply: terraform-plan
     cd infra; terraform apply tfplan
+
+terraform-format:
+    terraform fmt -recursive
