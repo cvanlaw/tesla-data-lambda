@@ -49,7 +49,7 @@ resource "aws_iam_role" "this" {
 
 resource "aws_lambda_function" "this" {
   function_name = local.lambda_function_name
-  image_uri     = "ghcr.io/cvanlaw/dotnet-hello-world-lambda:latest"
+  image_uri     = "402889198055.dkr.ecr.us-east-1.amazonaws.com/dotnet-hello-world-lambda:latest"
   package_type  = "Image"
   memory_size   = var.memory_size
   timeout       = var.timeout_seconds
