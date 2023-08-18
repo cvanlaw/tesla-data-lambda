@@ -29,7 +29,9 @@ data "aws_iam_policy_document" "lambda" {
       "logs:PutLogEvents",
     ]
 
-    resources = [aws_cloudwatch_log_group.this.arn, "${aws_cloudwatch_log_group.this.arn}*"]
+    resources = [
+      aws_cloudwatch_log_group.this.arn, "${aws_cloudwatch_log_group.this.arn}*"
+    ]
   }
   statement {
     effect = "Allow"
@@ -48,7 +50,9 @@ data "aws_iam_policy_document" "lambda" {
     actions = [
       "ssm:DescribeParameters"
     ]
-    resources = "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.lambda_function_name}/*"
+    resources = [
+      "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.lambda_function_name}/*"
+    ]
   }
 }
 
@@ -105,11 +109,39 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_ssm_parameter" "email" {
-  name = "/${local.lambda_function_name}/email"
-  type = "String"
+  name  = "/${local.lambda_function_name}/email"
+  type  = "String"
+  value = "placeholder"
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 resource "aws_ssm_parameter" "refresh_token" {
-  name = "/${local.lambda_function_name}/refresh_token"
-  type = "String"
+  name  = "/${local.lambda_function_name}/refresh_token"
+  type  = "String"
+  value = "placeholder"
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "this" {
+  name_prefix         = local.lambda_function_name
+  schedule_expression = "rate(8 hours)"
+}
+
+resource "aws_cloudwatch_event_target" "this" {
+  rule = aws_cloudwatch_event_rule.this.name
+  arn  = aws_lambda_function.this.arn
+}
+
+resource "aws_lambda_permission" "cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.this.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.this.arn
 }
