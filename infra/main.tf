@@ -2,6 +2,10 @@ locals {
   lambda_function_name = "tesla-data-exporter"
 }
 
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
@@ -16,53 +20,96 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 # See also the following AWS managed policy: AWSLambdaBasicExecutionRole
-data "aws_iam_policy_document" "lambda_logging" {
+data "aws_iam_policy_document" "lambda" {
   statement {
     effect = "Allow"
 
     actions = [
-      "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents",
     ]
 
-    resources = ["arn:aws:logs:*:*:*"]
+    resources = [aws_cloudwatch_log_group.this.arn, "${aws_cloudwatch_log_group.this.arn}*"]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject*"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.this.arn}*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:DescribeParameters"
+    ]
+    resources = "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.lambda_function_name}/*"
   }
 }
 
-resource "aws_iam_policy" "lambda_logging" {
-  name        = "lambda_logging"
+resource "aws_s3_bucket" "this" {
+  bucket_prefix = local.lambda_function_name
+}
+
+resource "aws_iam_policy" "lambda" {
+  name        = local.lambda_function_name
   path        = "/"
-  description = "IAM policy for logging from a lambda"
-  policy      = data.aws_iam_policy_document.lambda_logging.json
+  description = "IAM policy for ${local.lambda_function_name}"
+  policy      = data.aws_iam_policy_document.lambda.json
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.this.name
-  policy_arn = aws_iam_policy.lambda_logging.arn
+  policy_arn = aws_iam_policy.lambda.arn
 }
 
 resource "aws_iam_role" "this" {
-  name               = "iam_for_lambda"
+  name               = local.lambda_function_name
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
-resource "aws_lambda_function" "this" {
-  function_name = local.lambda_function_name
-  image_uri     = "402889198055.dkr.ecr.us-east-1.amazonaws.com/dotnet-hello-world-lambda:latest"
-  package_type  = "Image"
-  memory_size   = var.memory_size
-  timeout       = var.timeout_seconds
-  role          = aws_iam_role.this.arn
+data "archive_file" "this" {
+  type        = "zip"
+  source_dir  = "../lambda/src"
+  output_path = "lambda.zip"
+}
 
-  lifecycle {
-    ignore_changes = [
-      image_uri
-    ]
+resource "aws_lambda_function" "this" {
+  function_name    = local.lambda_function_name
+  package_type     = "Zip"
+  handler          = "function.handler"
+  runtime          = "python3.10"
+  filename         = data.archive_file.this.output_path
+  source_code_hash = data.archive_file.this.output_base64sha256
+  memory_size      = var.memory_size
+  timeout          = var.timeout_seconds
+  role             = aws_iam_role.this.arn
+
+  environment {
+    variables = {
+      BUCKET_NAME             = aws_s3_bucket.this.bucket
+      EMAIL_SSM_PARAM_NAME    = aws_ssm_parameter.email.name
+      REFRESH_TOKEN_SSM_PARAM = aws_ssm_parameter.refresh_token.name
+    }
   }
 }
 
-resource "aws_cloudwatch_log_group" "example" {
+resource "aws_cloudwatch_log_group" "this" {
   name              = "/aws/lambda/${local.lambda_function_name}"
   retention_in_days = 14
+}
+
+resource "aws_ssm_parameter" "email" {
+  name = "/${local.lambda_function_name}/email"
+  type = "String"
+}
+
+resource "aws_ssm_parameter" "refresh_token" {
+  name = "/${local.lambda_function_name}/refresh_token"
+  type = "String"
 }
