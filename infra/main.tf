@@ -48,7 +48,8 @@ data "aws_iam_policy_document" "lambda" {
   statement {
     effect = "Allow"
     actions = [
-      "ssm:DescribeParameters"
+      "ssm:DescribeParameters",
+      "ssm:GetParameter"
     ]
     resources = [
       "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.lambda_function_name}/*"
