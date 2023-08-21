@@ -20,7 +20,7 @@ def db_load():
     return json.loads(response.get('Body').read())
     
 def db_dump(cache):
-    logger.info('saving cache to s3')
+    logger.info('saving cache to s3') 
     cache_obj = s3.Object(bucket, 'cache.json')
     cache_obj.put(Body=bytes(json.dumps(cache).encode('UTF-8')))
     logger.info('saved cache to s3')
@@ -30,7 +30,7 @@ def handler(event, context):
     email = ssm_client.get_parameter(Name=email_param)
     refresh_token = ssm_client.get_parameter(Name=refresh_token_param)
 
-    with teslapy.Tesla(email) as tesla:
+    with teslapy.Tesla(email, cache_loader=db_load, cache_dumper=db_dump) as tesla:
         logger.info('refreshing tesla auth')
         try:
             tesla.refresh_token(refresh_token=refresh_token)
