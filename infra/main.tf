@@ -37,7 +37,8 @@ data "aws_iam_policy_document" "lambda" {
     effect = "Allow"
 
     actions = [
-      "s3:PutObject*"
+      "s3:PutObject*",
+      "s3:GetObject*"
     ]
 
     resources = [
