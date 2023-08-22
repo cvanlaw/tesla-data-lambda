@@ -28,13 +28,13 @@ def db_dump(cache):
 
 def handler(event, context):
     ssm_client = boto3.client('ssm')
-    email = ssm_client.get_parameter(Name=email_param)
-    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)
+    email = ssm_client.get_parameter(Name=email_param)['Parameter']['Value']
+    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)['Parameter']['Value']
 
     with teslapy.Tesla(email, cache_loader=db_load, cache_dumper=db_dump) as tesla:
         logger.info('refreshing tesla auth')
         try:
-            tesla.refresh_token(refresh_token=refresh_token['Parameter']['Value'])
+            tesla.refresh_token(refresh_token=refresh_token)
         except:
             logger.error('failed to refresh tesla auth')
             exit(1)

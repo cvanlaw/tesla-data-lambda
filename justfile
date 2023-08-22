@@ -8,7 +8,7 @@ terraform-validate: terraform-init
     cd infra; terraform validate
 
 terraform-apply: terraform-plan
-    cd infra; terraform apply -auto-approve
+    cd infra; terraform apply -auto-approve tfplan
 
 terraform-format:
     terraform fmt -recursive
