@@ -16,13 +16,14 @@ def db_load():
     logger.info('loading cache from s3')
     cache_obj = s3.Object(bucket, 'cache.json')
     response = cache_obj.get()
-    logger.info('loaded cache from s3')
-    return json.loads(response.get('Body').read())
+    body = response.get('Body').read()
+    logger.info(f'loaded cache from s3: {body}')
+    return json.loads(body)
     
 def db_dump(cache):
     logger.info('saving cache to s3') 
     cache_obj = s3.Object(bucket, 'cache.json')
-    cache_obj.put(Body=bytes(json.dumps(cache).encode('UTF-8')))
+    cache_obj.put(Body=(bytes(json.dumps(cache).encode('UTF-8'))))
     logger.info('saved cache to s3')
 
 def handler(event, context):
@@ -33,7 +34,7 @@ def handler(event, context):
     with teslapy.Tesla(email, cache_loader=db_load, cache_dumper=db_dump) as tesla:
         logger.info('refreshing tesla auth')
         try:
-            tesla.refresh_token(refresh_token=refresh_token)
+            tesla.refresh_token(refresh_token=refresh_token['Parameter']['Value'])
         except:
             logger.error('failed to refresh tesla auth')
             exit(1)
