@@ -63,7 +63,7 @@ module "history_slicer_function" {
   ]
 
   environment_variables = {
-    TABLE_NAME = module.dynamodb_table.name
+    TABLE_NAME = local.slicer_function_name
   }
 
   allowed_triggers = {
