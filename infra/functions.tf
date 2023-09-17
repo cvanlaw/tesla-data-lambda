@@ -32,7 +32,7 @@ module "charing_history_exporter_function" {
   allowed_triggers = {
     EveryEightHours = {
       principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.this.arn
+      source_arn = aws_cloudwatch_event_rule.exporter.arn
     }
   }
 }
@@ -67,9 +67,9 @@ module "history_slicer_function" {
   }
 
   allowed_triggers = {
-    EveryEightHours = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.this.arn
+    s3 = {
+      principal  = "s3.amazonaws.com"
+      source_arn = aws_s3_bucket.this.arn
     }
   }
 }
@@ -173,12 +173,22 @@ resource "aws_ssm_parameter" "refresh_token" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "this" {
+resource "aws_cloudwatch_event_rule" "exporter" {
   name_prefix         = local.exporter_lambda_function_name
   schedule_expression = "rate(8 hours)"
 }
 
-resource "aws_cloudwatch_event_target" "this" {
-  rule = aws_cloudwatch_event_rule.this.name
+resource "aws_cloudwatch_event_target" "exporter" {
+  rule = aws_cloudwatch_event_rule.exporter.name
   arn  = module.charing_history_exporter_function.lambda_function_arn
+}
+
+resource "aws_s3_bucket_notification" "slicer" {
+  bucket = aws_s3_bucket.this.id
+
+  lambda_function {
+    lambda_function_arn = module.history_slicer_function.lambda_function_arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "charge_history/"
+  }
 }
