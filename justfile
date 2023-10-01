@@ -17,4 +17,4 @@ terraform-destroy:
     cd infra; terraform destroy
 
 install-function-deps:
-    cd lambda/src; pip install -r requirements.txt -t .
+    cd lambda/packages; pip install -r requirements.txt -t .
