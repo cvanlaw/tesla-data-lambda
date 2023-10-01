@@ -11,3 +11,17 @@ module "dynamodb_table" {
     }
   ]
 }
+
+module "vehicle_data" {
+  source = "terraform-aws-modules/dynamodb-table/aws"
+
+  name     = "vehicle-data"
+  hash_key = "timestamp"
+
+  attributes = [
+    {
+      name = "timestamp"
+      type = "N"
+    }
+  ]
+}

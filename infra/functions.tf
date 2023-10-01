@@ -74,6 +74,43 @@ module "history_slicer_function" {
   }
 }
 
+module "vehicle_data_function" {
+  source = "terraform-aws-modules/lambda/aws"
+
+  function_name = "vehicle-data"
+  description   = "Export vehicle data"
+  handler       = "function.handler"
+  runtime       = "python3.10"
+  publish       = true
+
+  attach_cloudwatch_logs_policy = true
+  attach_policy_jsons           = true
+
+  policy_jsons = [
+    data.aws_iam_policy_document.vehicle_data.json
+  ]
+
+  source_path   = "../lambda/src/mileage_tracker.py"
+  artifacts_dir = "${path.module}/.terraform/lambda_builds"
+
+  store_on_s3 = false
+
+  layers = [
+    module.lambda_layer_s3.lambda_layer_arn,
+  ]
+
+  environment_variables = {
+    TABLE_NAME = "vehicle-data"
+  }
+
+  allowed_triggers = {
+    AtMidnight = {
+      principal  = "events.amazonaws.com"
+      source_arn = aws_cloudwatch_event_rule.vehicle_data.arn
+    }
+  }
+}
+
 module "lambda_layer_s3" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -88,7 +125,7 @@ module "lambda_layer_s3" {
 
   store_on_s3 = true
   s3_prefix   = "lambda-builds/"
-  s3_bucket   = local.exporter_lambda_function_name
+  s3_bucket   = module.s3_bucket.bucket
 }
 
 module "s3_bucket" {
@@ -135,7 +172,9 @@ data "aws_iam_policy_document" "history_slicer" {
     effect = "Allow"
 
     actions = [
-      "s3:GetObject*"
+      "s3:GetObject*",
+      "s3:PutObject*",
+      "s3:DeleteObject*"
     ]
 
     resources = [
@@ -149,6 +188,19 @@ data "aws_iam_policy_document" "history_slicer" {
     ]
     resources = [
       module.dynamodb_table.dynamodb_table_arn
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "vehicle_data" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:GetItem"
+    ]
+    resources = [
+      module.vehicle_data.dynamodb_table_arn
     ]
   }
 }
@@ -191,4 +243,9 @@ resource "aws_s3_bucket_notification" "slicer" {
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "charge_history/"
   }
+}
+
+resource "aws_cloudwatch_event_rule" "vehicle_data" {
+  name_prefix         = local.exporter_lambda_function_name
+  schedule_expression = "cron(0 5 * * *)"
 }
