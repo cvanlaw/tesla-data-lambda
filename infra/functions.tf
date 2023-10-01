@@ -125,7 +125,7 @@ module "lambda_layer_s3" {
 
   store_on_s3 = true
   s3_prefix   = "lambda-builds/"
-  s3_bucket   = module.s3_bucket.bucket
+  s3_bucket   = module.s3_bucket.s3_bucket_id
 }
 
 module "s3_bucket" {
