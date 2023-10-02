@@ -3,7 +3,7 @@ module "charing_history_exporter_function" {
 
   function_name = local.exporter_lambda_function_name
   description   = "Export charging history"
-  handler       = "function.handler"
+  handler       = "export_history.handler"
   runtime       = "python3.10"
   publish       = true
 
@@ -42,7 +42,7 @@ module "history_slicer_function" {
 
   function_name = "history-slicer"
   description   = "Slice charging history"
-  handler       = "function.handler"
+  handler       = "slice_history.handler"
   runtime       = "python3.10"
   publish       = true
 
@@ -79,7 +79,7 @@ module "vehicle_data_function" {
 
   function_name = "vehicle-data"
   description   = "Export vehicle data"
-  handler       = "function.handler"
+  handler       = "mileage_tracker.handler"
   runtime       = "python3.10"
   publish       = true
 
