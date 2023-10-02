@@ -65,13 +65,6 @@ def handler(event, context):
             exit(1)
 
         vehicle = tesla.vehicle_list()[0]
-        logger.info("checking if vehicle is oneline")
-        available = vehicle.available()
-
-        if not available:
-            logger.info("vehicle not online. exiting.")
-            exit(0)
-
         vehicle.sync_wake_up()
         data = vehicle.get_vehicle_data()
         currentOdometer = data["vehicle_state"]["odometer"]
