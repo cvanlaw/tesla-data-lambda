@@ -16,5 +16,8 @@ terraform-format:
 terraform-destroy:
     cd infra; terraform destroy
 
-install-function-deps:
-    cd lambda/packages; pip install -r requirements.txt -t .
+install-function-deps: clean-function-deps
+    mkdir ./lambda/packages/python && cd lambda/packages; pip install -r requirements.txt -t python
+
+clean-function-deps:
+    rm -rf ./lambda/packages/python
