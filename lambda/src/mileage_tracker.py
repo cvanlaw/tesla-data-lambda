@@ -64,11 +64,11 @@ def export_vehicle_data(Tesla):
     vehicle = Tesla.vehicle_list()[0]
     vehicle.sync_wake_up()
     data = vehicle.get_vehicle_data()
-    currentOdometer = data["vehicle_state"]["odometer"]
-    previousOdometer = get_previous_odometer()
-    data["dailyMileage"] = currentOdometer - previousOdometer
     dataAsJson = json.dumps(data)
     dataFromJson = json.loads(dataAsJson, parse_float=Decimal)
+    currentOdometer = dataFromJson["vehicle_state"]["odometer"]
+    previousOdometer = get_previous_odometer()
+    dataFromJson["dailyMileage"] = currentOdometer - previousOdometer
     timestamp = int(time.mktime(
         datetime.now(pytz.timezone("US/Eastern"))
         .replace(hour=0, minute=0, second=0, microsecond=0)
