@@ -168,7 +168,8 @@ data "aws_iam_policy_document" "history_exporter" {
     effect = "Allow"
     actions = [
       "ssm:DescribeParameters",
-      "ssm:GetParameter"
+      "ssm:GetParameter",
+      "ssm:PutParameter"
     ]
     resources = [
       "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.exporter_lambda_function_name}/*"
@@ -227,7 +228,8 @@ data "aws_iam_policy_document" "vehicle_data" {
     effect = "Allow"
     actions = [
       "ssm:DescribeParameters",
-      "ssm:GetParameter"
+      "ssm:GetParameter",
+      "ssm:PutParameter"
     ]
     resources = [
       "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.exporter_lambda_function_name}/*"
@@ -237,7 +239,8 @@ data "aws_iam_policy_document" "vehicle_data" {
   statement {
     effect = "Allow"
     actions = [
-      "s3:GetObject*"
+      "s3:GetObject*",
+      "s3:PutObject*"
     ]
     resources = ["${aws_s3_bucket.this.arn}*"]
   }
