@@ -38,11 +38,11 @@ def db_dump(cache):
 
 
 def get_previous_odometer():
-    timestamp = time.mktime(
+    timestamp = int(time.mktime(
         datetime.now(pytz.timezone("US/Eastern"))
-        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .replace(day=datetime.now().day - 1,hour=0, minute=0, second=0, microsecond=0)
         .timetuple()
-    )
+    ))
     resp = table.get_item(Key={"timestamp": timestamp})
     return resp["Item"]["vehicle_state"]["odometer"]
 
@@ -69,7 +69,13 @@ def export_vehicle_data(Tesla):
     data["dailyMileage"] = currentOdometer - previousOdometer
     dataAsJson = json.dumps(data)
     dataFromJson = json.loads(dataAsJson, parse_float=Decimal)
-    persist_vehicle_data(dataFromJson)
+    timestamp = int(time.mktime(
+        datetime.now(pytz.timezone("US/Eastern"))
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .timetuple()
+    ))
+    dataFromJson["timestamp"] = timestamp
+    persist_vehicle_data(timestamp, dataFromJson)
 
 
 def update_refresh_token(refresh_token):
