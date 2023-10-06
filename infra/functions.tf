@@ -10,6 +10,7 @@ module "charing_history_exporter_function" {
 
   attach_cloudwatch_logs_policy = true
   attach_policy_jsons           = true
+  number_of_policy_jsons        = 1
 
   policy_jsons = [
     data.aws_iam_policy_document.history_exporter.json
@@ -50,6 +51,7 @@ module "history_slicer_function" {
 
   attach_cloudwatch_logs_policy = true
   attach_policy_jsons           = true
+  number_of_policy_jsons        = 1
 
   policy_jsons = [
     data.aws_iam_policy_document.history_slicer.json
@@ -88,6 +90,7 @@ module "vehicle_data_function" {
 
   attach_cloudwatch_logs_policy = true
   attach_policy_jsons           = true
+  number_of_policy_jsons        = 1
 
   policy_jsons = [
     data.aws_iam_policy_document.vehicle_data.json
@@ -219,6 +222,7 @@ data "aws_iam_policy_document" "vehicle_data" {
       module.vehicle_data.dynamodb_table_arn
     ]
   }
+
   statement {
     effect = "Allow"
     actions = [
