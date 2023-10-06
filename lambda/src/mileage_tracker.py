@@ -18,7 +18,7 @@ bucket = os.environ["BUCKET_NAME"]
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 s3 = boto3.resource("s3")
-
+ssm_client = boto3.client("ssm")
 
 def db_load():
     logger.info("loading cache from s3")
@@ -69,19 +69,22 @@ def export_vehicle_data(Tesla):
     persist_vehicle_data(data)
 
 
+def update_refresh_token(refresh_token):
+    ssm_client.put_parameter(Name=refresh_token_param, Value=refresh_token, Overwrite=True)
+
+
 def handler(event, context):
-    ssm_client = boto3.client("ssm")
     email = ssm_client.get_parameter(Name=email_param)["Parameter"]["Value"]
-    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)["Parameter"][
-        "Value"
-    ]
+    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)["Parameter"]["Value"]
 
     with teslapy.Tesla(email, cache_loader=db_load, cache_dumper=db_dump) as tesla:
         logger.info("refreshing tesla auth")
         try:
-            tesla.refresh_token(refresh_token=refresh_token)
-        except:
-            logger.error("failed to refresh tesla auth")
+            token = tesla.refresh_token(refresh_token=refresh_token)
+            if not token["refresh_token"] == refresh_token:
+                update_refresh_token(token["refresh_token"])
+        except teslapy.HTTPError as e:
+            logger.error("failed to refresh tesla auth. error: ", e)
             exit(1)
 
         export_vehicle_data(Tesla=tesla)
