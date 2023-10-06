@@ -100,7 +100,9 @@ module "vehicle_data_function" {
   ]
 
   environment_variables = {
-    TABLE_NAME = "vehicle-data"
+    TABLE_NAME              = "vehicle-data"
+    EMAIL_SSM_PARAM_NAME    = aws_ssm_parameter.email.name
+    REFRESH_TOKEN_SSM_PARAM = aws_ssm_parameter.refresh_token.name
   }
 
   allowed_triggers = {
