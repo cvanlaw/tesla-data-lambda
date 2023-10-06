@@ -26,7 +26,7 @@ module "charing_history_exporter_function" {
   ]
 
   environment_variables = {
-    BUCKET_NAME             = module.s3_bucket.s3_bucket_arn
+    BUCKET_NAME             = aws_s3_bucket.this.bucket
     EMAIL_SSM_PARAM_NAME    = aws_ssm_parameter.email.name
     REFRESH_TOKEN_SSM_PARAM = aws_ssm_parameter.refresh_token.name
   }
@@ -107,7 +107,7 @@ module "vehicle_data_function" {
 
   environment_variables = {
     TABLE_NAME              = "vehicle-data"
-    BUCKET_NAME             = module.s3_bucket.s3_bucket_arn
+    BUCKET_NAME             = aws_s3_bucket.this.bucket
     EMAIL_SSM_PARAM_NAME    = aws_ssm_parameter.email.name
     REFRESH_TOKEN_SSM_PARAM = aws_ssm_parameter.refresh_token.name
   }
