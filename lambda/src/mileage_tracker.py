@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 import pytz
 import os
 import logging
+from decimal import Decimal
 
 dynamodb = boto3.resource("dynamodb")
 table_name = os.environ["TABLE_NAME"]
@@ -66,7 +67,9 @@ def export_vehicle_data(Tesla):
     currentOdometer = data["vehicle_state"]["odometer"]
     previousOdometer = get_previous_odometer()
     data["dailyMileage"] = currentOdometer - previousOdometer
-    persist_vehicle_data(data)
+    dataAsJson = json.dumps(data)
+    dataFromJson = json.loads(dataAsJson, parse_float=Decimal)
+    persist_vehicle_data(dataFromJson)
 
 
 def update_refresh_token(refresh_token):
