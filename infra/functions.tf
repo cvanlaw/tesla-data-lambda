@@ -86,7 +86,7 @@ module "vehicle_data_function" {
   handler       = "mileage_tracker.handler"
   runtime       = "python3.10"
   publish       = true
-  timeout       = 10
+  timeout       = 30
 
   attach_cloudwatch_logs_policy = true
   attach_policy_jsons           = true
