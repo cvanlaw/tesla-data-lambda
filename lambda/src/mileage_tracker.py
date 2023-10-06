@@ -38,14 +38,22 @@ def db_dump(cache):
 
 
 def get_previous_odometer():
-    timestamp = int(time.mktime(
-        datetime.now(pytz.timezone("US/Eastern"))
-        .replace(day=datetime.now().day - 1,hour=0, minute=0, second=0, microsecond=0)
-        .timetuple()
-    ))
-    resp = table.get_item(Key={"timestamp": timestamp})
-    return resp["Item"]["vehicle_state"]["odometer"]
-
+    try:
+        timestamp = int(time.mktime(
+            datetime.now(pytz.timezone("US/Eastern"))
+            .replace(day=datetime.now().day - 1,hour=0, minute=0, second=0, microsecond=0)
+            .timetuple()
+        ))
+        resp = table.get_item(Key={"timestamp": timestamp})
+        return resp["Item"]["vehicle_state"]["odometer"]
+    except ClientError as err:
+        logger.error(
+            "Couldn't get charging history %s from table %s. Here's why: %s: %s",
+            timestamp,
+            table_name,
+            err.response["Error"]["Code"],
+            err.response["Error"]["Message"],
+        )
 
 def persist_vehicle_data(key, vehicle_data_document):
     try:
