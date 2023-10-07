@@ -40,8 +40,8 @@ def db_dump(cache):
 
 def get_previous_odometer():
     try:
-        timestamp = pytz.timezone("America/New_York").localize(
-            int(
+        timestamp = int(
+            pytz.timezone("America/New_York").localize(
                 time.mktime(
                     datetime.now()
                     .replace(
@@ -91,8 +91,8 @@ def export_vehicle_data(Tesla):
     currentOdometer = dataFromJson["vehicle_state"]["odometer"]
     previousOdometer = get_previous_odometer()
     dataFromJson["dailyMileage"] = currentOdometer - previousOdometer
-    timestamp = pytz.timezone("America/New_York").localize(
-        int(
+    timestamp = int(
+        pytz.timezone("America/New_York").localize(
             time.mktime(
                 datetime.now()
                 .replace(hour=0, minute=0, second=0, microsecond=0)
