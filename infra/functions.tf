@@ -83,7 +83,7 @@ module "vehicle_data_function" {
 
   function_name = "vehicle-data"
   description   = "Export vehicle data"
-  handler       = "mileage_tracker.handler"
+  handler       = "vehicle_data_exporter.handler"
   runtime       = "python3.10"
   publish       = true
   timeout       = 30
@@ -96,7 +96,7 @@ module "vehicle_data_function" {
     data.aws_iam_policy_document.vehicle_data.json
   ]
 
-  source_path   = "../lambda/src/mileage_tracker.py"
+  source_path   = "../lambda/src/vehicle_data_exporter.py"
   artifacts_dir = "${path.module}/.terraform/lambda_builds"
 
   store_on_s3 = false

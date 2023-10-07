@@ -4,7 +4,6 @@ import json
 import time
 from datetime import datetime
 from botocore.exceptions import ClientError
-import pytz
 import os
 import logging
 from decimal import Decimal
@@ -38,37 +37,6 @@ def db_dump(cache):
     logger.info("saved cache to s3")
 
 
-def get_previous_odometer():
-    try:
-        timestamp = int(
-            pytz.timezone("America/New_York").localize(
-                time.mktime(
-                    datetime.now()
-                    .replace(
-                        day=datetime.now().day - 1,
-                        hour=0,
-                        minute=0,
-                        second=0,
-                        microsecond=0,
-                    )
-                    .timetuple()
-                )
-            )
-        )
-        logger.info("getting previous odometer for key %s", timestamp)
-        resp = table.get_item(Key={"timestamp": timestamp})
-        logger.info(f"retrieved item: {json.dumps(resp)}")
-        return resp["Item"]["vehicle_state"]["odometer"]
-    except ClientError as err:
-        logger.error(
-            "Couldn't get charging history %s from table %s. Here's why: %s: %s",
-            timestamp,
-            table_name,
-            err.response["Error"]["Code"],
-            err.response["Error"]["Message"],
-        )
-
-
 def persist_vehicle_data(key, vehicle_data_document):
     try:
         table.put_item(Item=vehicle_data_document)
@@ -88,16 +56,9 @@ def export_vehicle_data(Tesla):
     data = vehicle.get_vehicle_data()
     dataAsJson = json.dumps(data)
     dataFromJson = json.loads(dataAsJson, parse_float=Decimal)
-    currentOdometer = dataFromJson["vehicle_state"]["odometer"]
-    previousOdometer = get_previous_odometer()
-    dataFromJson["dailyMileage"] = currentOdometer - previousOdometer
     timestamp = int(
-        pytz.timezone("America/New_York").localize(
-            time.mktime(
-                datetime.now()
-                .replace(hour=0, minute=0, second=0, microsecond=0)
-                .timetuple()
-            )
+        time.mktime(
+            datetime.now().replace(hour=5, minute=0, second=0, microsecond=0).timetuple()
         )
     )
     dataFromJson["timestamp"] = timestamp
