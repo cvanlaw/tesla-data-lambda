@@ -50,19 +50,32 @@ def persist_vehicle_data(key, vehicle_data_document):
         )
 
 
+def get_vehicle_data(Vehicle):
+    data = Vehicle.get_vehicle_data()
+    dataAsJson = json.dumps(data)
+    return json.loads(dataAsJson, parse_float=Decimal)
+
+
 def export_vehicle_data(Tesla):
     vehicle = Tesla.vehicle_list()[0]
+
+    if not vehicle.available():
+        logger.info("vehicle not available.")
+        exit(0)
+
     vehicle.sync_wake_up()
-    data = vehicle.get_vehicle_data()
-    dataAsJson = json.dumps(data)
-    dataFromJson = json.loads(dataAsJson, parse_float=Decimal)
+    data = get_vehicle_data(vehicle)
+
     timestamp = int(
         time.mktime(
-            datetime.now().replace(hour=5, minute=0, second=0, microsecond=0).timetuple()
+            datetime.now()
+            .replace(hour=5, minute=0, second=0, microsecond=0)
+            .timetuple()
         )
     )
-    dataFromJson["timestamp"] = timestamp
-    persist_vehicle_data(timestamp, dataFromJson)
+    data["timestamp"] = timestamp
+    persist_vehicle_data(timestamp, data)
+
 
 def handler(event, context):
     email = ssm_client.get_parameter(Name=email_param)["Parameter"]["Value"]
