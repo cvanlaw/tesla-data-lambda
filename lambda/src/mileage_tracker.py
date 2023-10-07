@@ -21,6 +21,7 @@ logger.setLevel(logging.INFO)
 s3 = boto3.resource("s3")
 ssm_client = boto3.client("ssm")
 
+
 def db_load():
     logger.info("loading cache from s3")
     cache_obj = s3.Object(bucket, "cache.json")
@@ -39,12 +40,24 @@ def db_dump(cache):
 
 def get_previous_odometer():
     try:
-        timestamp = int(time.mktime(
-            datetime.now(pytz.timezone("US/Eastern"))
-            .replace(day=datetime.now().day - 1,hour=0, minute=0, second=0, microsecond=0)
-            .timetuple()
-        ))
+        timestamp = pytz.timezone("America/New_York").localize(
+            int(
+                time.mktime(
+                    datetime.now()
+                    .replace(
+                        day=datetime.now().day - 1,
+                        hour=0,
+                        minute=0,
+                        second=0,
+                        microsecond=0,
+                    )
+                    .timetuple()
+                )
+            )
+        )
+        logger.info("getting previous odometer for key %s", timestamp)
         resp = table.get_item(Key={"timestamp": timestamp})
+        logger.info(f"retrieved item: {json.dumps(resp)}")
         return resp["Item"]["vehicle_state"]["odometer"]
     except ClientError as err:
         logger.error(
@@ -54,6 +67,7 @@ def get_previous_odometer():
             err.response["Error"]["Code"],
             err.response["Error"]["Message"],
         )
+
 
 def persist_vehicle_data(key, vehicle_data_document):
     try:
@@ -77,22 +91,30 @@ def export_vehicle_data(Tesla):
     currentOdometer = dataFromJson["vehicle_state"]["odometer"]
     previousOdometer = get_previous_odometer()
     dataFromJson["dailyMileage"] = currentOdometer - previousOdometer
-    timestamp = int(time.mktime(
-        datetime.now(pytz.timezone("US/Eastern"))
-        .replace(hour=0, minute=0, second=0, microsecond=0)
-        .timetuple()
-    ))
+    timestamp = pytz.timezone("America/New_York").localize(
+        int(
+            time.mktime(
+                datetime.now()
+                .replace(hour=0, minute=0, second=0, microsecond=0)
+                .timetuple()
+            )
+        )
+    )
     dataFromJson["timestamp"] = timestamp
     persist_vehicle_data(timestamp, dataFromJson)
 
 
 def update_refresh_token(refresh_token):
-    ssm_client.put_parameter(Name=refresh_token_param, Value=refresh_token, Overwrite=True)
+    ssm_client.put_parameter(
+        Name=refresh_token_param, Value=refresh_token, Overwrite=True
+    )
 
 
 def handler(event, context):
     email = ssm_client.get_parameter(Name=email_param)["Parameter"]["Value"]
-    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)["Parameter"]["Value"]
+    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)["Parameter"][
+        "Value"
+    ]
 
     with teslapy.Tesla(email, cache_loader=db_load, cache_dumper=db_dump) as tesla:
         logger.info("refreshing tesla auth")
