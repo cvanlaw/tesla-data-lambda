@@ -113,7 +113,7 @@ module "vehicle_data_function" {
   }
 
   allowed_triggers = {
-    AtMidnight = {
+    EveryHour = {
       principal  = "events.amazonaws.com"
       source_arn = aws_cloudwatch_event_rule.vehicle_data.arn
     }
@@ -288,5 +288,5 @@ resource "aws_s3_bucket_notification" "slicer" {
 
 resource "aws_cloudwatch_event_rule" "vehicle_data" {
   name_prefix         = local.exporter_lambda_function_name
-  schedule_expression = "cron(0 5 * * ? *)"
+  schedule_expression = "cron(0 * * * ? *)"
 }
