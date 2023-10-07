@@ -64,27 +64,9 @@ def export_vehicle_data(Tesla):
     dataFromJson["timestamp"] = timestamp
     persist_vehicle_data(timestamp, dataFromJson)
 
-
-def update_refresh_token(refresh_token):
-    ssm_client.put_parameter(
-        Name=refresh_token_param, Value=refresh_token, Overwrite=True
-    )
-
-
 def handler(event, context):
     email = ssm_client.get_parameter(Name=email_param)["Parameter"]["Value"]
-    refresh_token = ssm_client.get_parameter(Name=refresh_token_param)["Parameter"][
-        "Value"
-    ]
-
     with teslapy.Tesla(email, cache_loader=db_load, cache_dumper=db_dump) as tesla:
-        logger.info("refreshing tesla auth")
-        try:
-            token = tesla.refresh_token(refresh_token=refresh_token)
-            if not token["refresh_token"] == refresh_token:
-                update_refresh_token(token["refresh_token"])
-        except teslapy.HTTPError as e:
-            logger.error("failed to refresh tesla auth. error: ", e)
-            exit(1)
-
+        logger.info("Exporting vehicle data...")
         export_vehicle_data(Tesla=tesla)
+        logger.info("complete")
