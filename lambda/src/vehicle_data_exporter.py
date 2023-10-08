@@ -64,7 +64,9 @@ def export_vehicle_data(Tesla):
         return None
 
     vehicle.sync_wake_up()
+    logger.info("getting vehicle data...")
     data = get_vehicle_data(vehicle)
+    logger.info("...done")
 
     timestamp = int(
         time.mktime(
@@ -74,7 +76,9 @@ def export_vehicle_data(Tesla):
         )
     )
     data["timestamp"] = timestamp
+    logger.info("persisting vehicle data for %s...", timestamp)
     persist_vehicle_data(timestamp, data)
+    logger.info("...done")
 
 
 def handler(event, context):
