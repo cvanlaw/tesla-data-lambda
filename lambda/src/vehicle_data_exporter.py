@@ -61,7 +61,7 @@ def export_vehicle_data(Tesla):
 
     if not vehicle.available():
         logger.info("vehicle not available.")
-        exit(0)
+        return None
 
     vehicle.sync_wake_up()
     data = get_vehicle_data(vehicle)
@@ -83,3 +83,4 @@ def handler(event, context):
         logger.info("Exporting vehicle data...")
         export_vehicle_data(Tesla=tesla)
         logger.info("complete")
+        return
