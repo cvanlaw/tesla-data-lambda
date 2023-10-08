@@ -287,6 +287,11 @@ resource "aws_s3_bucket_notification" "slicer" {
 }
 
 resource "aws_cloudwatch_event_rule" "vehicle_data" {
-  name_prefix         = local.exporter_lambda_function_name
+  name_prefix         = "vehicle-data-"
   schedule_expression = "cron(0 * * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "vehicle_data" {
+  rule = aws_cloudwatch_event_rule.vehicle_data.name
+  arn  = module.vehicle_data_function.lambda_function_arn
 }
