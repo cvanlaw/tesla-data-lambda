@@ -26,10 +26,10 @@ def slice_charging_history(charging_history):
     return sliced_history
 
 
-def slice(bucket, key):
+def slice(bucket: str, key: str, table_name: str):
     json_content = load_object(bucket, key)
     sliced = slice_charging_history(json_content)
     for k in sliced:
         logger.info(f"persisting {k}")
-        persist_charging_history(k, sliced[k])
+        persist_charging_history(table_name, k, sliced[k])
     archive_charging_history(bucket, key)
