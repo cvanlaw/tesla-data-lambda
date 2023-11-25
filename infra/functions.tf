@@ -27,6 +27,7 @@ module "charing_history_exporter_function" {
 
   environment_variables = {
     BUCKET_NAME             = aws_s3_bucket.this.bucket
+    TABLE_NAME              = local.slicer_function_name
     EMAIL_SSM_PARAM_NAME    = aws_ssm_parameter.email.name
     REFRESH_TOKEN_SSM_PARAM = aws_ssm_parameter.refresh_token.name
   }
@@ -67,7 +68,8 @@ module "history_slicer_function" {
   ]
 
   environment_variables = {
-    TABLE_NAME = local.slicer_function_name
+    TABLE_NAME  = local.slicer_function_name
+    BUCKET_NAME = aws_s3_bucket.this.bucket
   }
 
   allowed_triggers = {
