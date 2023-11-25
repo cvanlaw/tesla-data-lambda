@@ -3,7 +3,7 @@ module "charing_history_exporter_function" {
 
   function_name = local.exporter_lambda_function_name
   description   = "Export charging history"
-  handler       = "export_history.handler"
+  handler       = "lambda_handlers.run_charge_history_exporter"
   runtime       = "python3.10"
   publish       = true
   timeout       = 30
@@ -15,8 +15,8 @@ module "charing_history_exporter_function" {
   policy_jsons = [
     data.aws_iam_policy_document.history_exporter.json
   ]
-
-  source_path   = "../lambda/src/export_history.py"
+  
+  source_path   = "../lambda/src"
   artifacts_dir = "${path.module}/.terraform/lambda_builds"
 
   store_on_s3 = false
@@ -44,7 +44,7 @@ module "history_slicer_function" {
 
   function_name = "history-slicer"
   description   = "Slice charging history"
-  handler       = "slice_history.handler"
+  handler       = "lambda_handlers.run_history_slicer"
   runtime       = "python3.10"
   publish       = true
   timeout       = 30
@@ -57,7 +57,7 @@ module "history_slicer_function" {
     data.aws_iam_policy_document.history_slicer.json
   ]
 
-  source_path   = "../lambda/src/slice_history.py"
+  source_path   = "../lambda/src"
   artifacts_dir = "${path.module}/.terraform/lambda_builds"
 
   store_on_s3 = false
@@ -83,7 +83,7 @@ module "vehicle_data_function" {
 
   function_name = "vehicle-data"
   description   = "Export vehicle data"
-  handler       = "vehicle_data_exporter.handler"
+  handler       = "lambda_handlers.run_vehicle_data_exporter"
   runtime       = "python3.10"
   publish       = true
   timeout       = 30
@@ -96,7 +96,7 @@ module "vehicle_data_function" {
     data.aws_iam_policy_document.vehicle_data.json
   ]
 
-  source_path   = "../lambda/src/vehicle_data_exporter.py"
+  source_path   = "../lambda/src"
   artifacts_dir = "${path.module}/.terraform/lambda_builds"
 
   store_on_s3 = false
