@@ -10,7 +10,7 @@ bucket = os.environ["BUCKET_NAME"]
 s3 = boto3.resource("s3")
 
 
-def db_load(bucket):
+def db_load():
     logger.info("loading cache from s3")
     cache_obj = s3.Object(bucket, "cache.json")
     response = cache_obj.get()
