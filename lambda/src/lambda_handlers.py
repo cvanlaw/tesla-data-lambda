@@ -10,7 +10,7 @@ from history_slicer import slice
 import logging
 import os
 import time
-import datetime
+from datetime import datetime
 import urllib.parse
 
 configure_logging(logging.INFO)
