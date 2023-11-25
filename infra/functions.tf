@@ -15,7 +15,7 @@ module "charing_history_exporter_function" {
   policy_jsons = [
     data.aws_iam_policy_document.history_exporter.json
   ]
-  
+
   source_path   = "../lambda/src"
   artifacts_dir = "${path.module}/.terraform/lambda_builds"
 
