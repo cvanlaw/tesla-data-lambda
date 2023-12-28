@@ -34,22 +34,27 @@ def get_tesla_client():
 
 
 def get_vehicle():
+    logger.info("getting vehicle")
     return get_tesla_client().vehicle_list()[0]
 
 
 def get_charge_history():
+    logger.info("getting vehicle charge history")
     return get_vehicle().get_charge_history()
 
 
 def vehicle_available():
+    logger.info("checking vehicle availability")
     return get_vehicle().available()
 
 
 def sync_vehicle():
+    logger.info("syncing vehicle")
     get_vehicle().sync_wake_up()
 
 
 def get_vehicle_data():
+    logger.info("getting vehicle data")
     data = get_vehicle().get_vehicle_data()
     dataAsJson = json.dumps(data)
     return json.loads(dataAsJson, parse_float=Decimal)
